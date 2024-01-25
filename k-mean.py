@@ -1,14 +1,19 @@
 from difflib import SequenceMatcher
 from sklearn.cluster import KMeans
 
-# 已知的 URL
+# known urls
 known_urls = [
     "https://www.google.com",
     "https://www.facebook.com",
-    # 更多已知 URL ...
+    "https://www.youtube.com",
+    "https://www.yahoo.com",
+    "https://www.amazon.com",
+    "https://www.wikipedia.org",
+    "https://www.qq.com",
+    "https://www.twitter.com",
 ]
 
-# 疑似 URL
+# suspicious urls or phishing urls
 suspicious_urls = [
     "https://www.g00gle.com",
     "https://www.faceb00k.com",
@@ -20,36 +25,40 @@ suspicious_urls = [
     "https://www.faccbook.com",
     "https://www.&00&le.com",
     "https://www.faeebook.com",
+    "https://www.farebook.com",
     "https://www.faeebook.com",
     "https://www.qwertyhgfds.com",
     "https://www.dshe67%g%yuy%6.com",
     "https://www.googledrive.com",
     "https://erl.ddifjidjjfidjifgoogledrive.com",
+    "https://www.gaagle.com.tw",
+    "https://www.goggle.com",
+    "https://www.youtubee.com",
 ]
 
-# 提取域名后的部分
+# take domain part of url
 def extract_domain_part(url):
     return url.split("www.", 1)[-1]
 
-# 正規化函數，將一些相似的字視為相同
+# regularize url
 def normalize_url(url):
     url = url.lower()  # 將 URL 轉換為小寫
     url = url.replace('0', 'o')  # 將 0 視為 o
     url = url.replace('1', 'l')  # 將 1 視為 l(L)
     url = url.replace('g', '&')  # 將 1 視為 l
-    # 可以添加更多的正規化規則
+    # add more regular expression here
 
     return url
 
-# 移除 URL 的 https://www. 部分
+# rm http:// or https:// in urls
 def remove_prefix(urls):
     return [extract_domain_part(url) for url in urls]
 
-# 移除前綴部分
+# remove prefix
 known_urls_without_prefix = remove_prefix(known_urls)
 suspicious_urls_without_prefix = remove_prefix(suspicious_urls)
 
-# 計算相似度矩陣
+# calculate similarity matrix
 def calculate_similarity_matrix(suspicious_urls, known_urls):
     similarities = []
     for suspicious_url in suspicious_urls:
@@ -63,22 +72,22 @@ def calculate_similarity_matrix(suspicious_urls, known_urls):
         similarities.append(sim)
     return similarities
 
-# 計算相似度矩陣
+# calculate similarity matrix
 similarities_matrix = calculate_similarity_matrix(suspicious_urls_without_prefix, known_urls_without_prefix)
 
-# 定義相似度閾值
+# define threshold
 threshold = 0.5
 
-# 使用 K-means 聚類
-num_clusters = len(known_urls_without_prefix)  # 假設與已知網站數量相同的群數
+# use k-means to group urls
+num_clusters = len(known_urls_without_prefix)  #set number of clusters
 kmeans = KMeans(n_clusters=num_clusters)
 kmeans.fit(similarities_matrix)
 clusters = kmeans.labels_
 
-# 將 URL 分群
+# group urls
 url_clusters = {'unknown_urls': []}
 for i, suspicious_url in enumerate(suspicious_urls):
-    similarity = max(similarities_matrix[i])  # 使用最大相似度作為該 URL 的相似度
+    similarity = max(similarities_matrix[i])  # use max similarity as similarity of url
     if similarity < threshold:
         url_clusters['unknown_urls'].append(suspicious_url)
     else:
@@ -88,6 +97,6 @@ for i, suspicious_url in enumerate(suspicious_urls):
         else:
             url_clusters[cluster_label].append(suspicious_url)
 
-# 顯示分群結果
+# show result
 for cluster_label, cluster_urls in url_clusters.items():
     print(f"Cluster {cluster_label}: {cluster_urls}")
