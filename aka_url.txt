@@ -37,7 +37,7 @@ microsoftonline.com
 turbopages.org
 microsoft.com
 weather.com
-t.me
+tme
 xhamster.desi
 qq.com
 duckduckgo.com
@@ -48,3 +48,6 @@ ebay.com
 fandom.com
 globo.com
 msn.com
+paypal.com
+pichincha.com
+index
