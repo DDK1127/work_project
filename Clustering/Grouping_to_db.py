@@ -1,6 +1,7 @@
 #下載bad_url.txt = bad_output.csv和aka_url.txt即可執行
 import re
 import tldextract
+import os
 
 def tear_down(url):
     # 要移除的常見子域名
@@ -71,7 +72,7 @@ def find_most_similar_word(input_url, target_word):
 
 #----------------------------input-------------------------------#
 
-with open('bad_url.txt', 'r') as file:
+with open('large_badurl.txt', 'r') as file:
     input_url = [line.strip() for line in file]
 
 with open('aka_url.txt', 'r') as file:
@@ -79,17 +80,18 @@ with open('aka_url.txt', 'r') as file:
 
 #----------------------------input-------------------------------#
     
-# 清空distance.txt
-with open("Grouped.txt", "w") as file:
-    file.write("")
+# file_path = "E:\trash_data\After_Grouping_to_db.txt"
+# with open(file_path, 'a') as file:
+#     file.write("")
 
 with open("Grouped.txt", "a") as file:
-    for j in target_word:
-        file.write(j + "\n")
-        for origin_url in input_url:
+    for origin_url in input_url:
+        most_similase_url = 'nothing'
+        most_similase_unm = 1.0
+        for j in target_word:
             teared = tear_down(origin_url)
             min_levenshtein = 100
-            levenshtein_similase = 100.0
+            levenshtein_similase = 1.0
             similar = "null"
             for i in teared:
                 most_similar_word, levenshtein_dist = find_most_similar_word(i, j)#找出與target_word最相似的most_similar_word
@@ -102,9 +104,9 @@ with open("Grouped.txt", "a") as file:
                     min_levenshtein = levenshtein_dist
                     similar = most_similar_word
 
-            if levenshtein_similase == 100.0:
+            if levenshtein_similase == 1.0:
                 levenshtein_similase = min_levenshtein/len(j)
-            print(f"Origin: '{j}' Similar: '{similar}' levenshtein_similase: '{levenshtein_similase:.5f}'")#記錄這三個
+            # print(f"Origin: '{j}' Similar: '{similar}' levenshtein_similase: '{levenshtein_similase:.5f}'")#記錄這三個
 
             is_imitate_value = 0.5
 
@@ -115,14 +117,12 @@ with open("Grouped.txt", "a") as file:
             elif len(j) <= 6:
                 is_imitate_value = 0.4
             
-            if levenshtein_similase <= is_imitate_value:
-                file.write(origin_url + "\n")
-        file.write("\n")
-        print("")
+            if levenshtein_similase <= is_imitate_value and levenshtein_similase < most_similase_unm:
+                most_similase_unm = levenshtein_similase
+                most_similase_url = j
+        if most_similase_unm == 1:
+            print(origin_url+' '+most_similase_url+' '+str(most_similase_unm))
 
-
-
-#K-mean
 
 
 
