@@ -60,7 +60,7 @@ def kmeans_cluster(data, num_clusters):
     return clusters
 
 def main():
-    file_path = 'badurl.txt'  # replace with your file path
+    file_path = '../testdata/Grouped.txt'  # replace with your file path
     urls = read_url_list_from_txt(file_path)
 
     # You can choose the maximum number of clusters to consider
