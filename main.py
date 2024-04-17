@@ -10,6 +10,8 @@ import requests
 import ssl
 import socket
 import tldextract
+import whois
+from datetime import datetime
 
 
 def is_url_shortened(url):
@@ -183,7 +185,7 @@ def asn_url(domain):
             return int(asn.split()[0])  # 返回ASN的第一部分（通常是數字）
         else:
             return -1
-    except Exception as e:
+    except:
         return -1
 
 # 定義函數來計算每個 URL 中的各種字元數量和長度
@@ -329,7 +331,70 @@ def is_domain_indexed_on_google(domain):
     except Exception as e:
         print("is_domain_indexed_on_google function => error:", e)
         return 0
+    
+def tld_length(domain):
+    try:
+        # 從域名中獲取頂級域名
+        tld = domain.split('.')[-1]
+        # 返回頂級域名的長度
+        return len(tld)
+    except Exception as e:
+        return -1
 
+def Time_domain_activation(domain):
+    try:
+        # 查詢域名的 Whois 記錄
+        w = whois.whois(domain)
+        
+        # 獲取註冊日期
+        creation_date = w.creation_date
+        
+        # 如果 creation_date 是一個列表，我們只取第一個日期
+        if isinstance(creation_date, list):
+            creation_date = creation_date[0]
+        
+        # 計算註冊日期與現在日期之間的差距（以天為單位）
+        if creation_date:
+            today = datetime.today()
+            activation_days = (today - creation_date).days
+            return activation_days
+        else:
+            return -1
+    except:
+        return -1
+
+def Time_domain_expiration(domain):
+    try:
+        # 查詢域名的 Whois 記錄
+        w = whois.whois(domain)
+        
+        # 獲取到期日期
+        expiration_date = w.expiration_date
+        
+        # 如果 expiration_date 是一個列表，我們只取第一個日期
+        if isinstance(expiration_date, list):
+            expiration_date = expiration_date[0]
+        
+        # 計算到期日期與現在日期之間的差距（以天為單位）
+        if expiration_date:
+            today = datetime.today()
+            expiration_days = (expiration_date - today).days
+            return expiration_days
+        else:
+            return -1
+    except:
+        return -1
+    
+def mx_servers(domain):
+    try:
+        # 查詢域名的MX記錄
+        mx_records = dns.resolver.resolve(domain, 'MX')
+        # 返回MX記錄的數量
+        return len(mx_records)
+    except:
+        return -1
+    
+    
 # 讀取CSV檔案，並省略掉標題行
 df = pd.read_csv("fff.csv", header=None, skiprows=1, names=["URL", "Lable"])
 
@@ -376,16 +441,24 @@ for index, row in df.iterrows():
     tld_present_params = tld_present_url(url)
     
     ttl_value = ttl_hostname(domain)
+    
     asn_ip = asn_url(domain)
     
+    qty_tld_url = tld_length(domain)
+    
+    time_domain_activation = Time_domain_activation(domain)
+    time_domain_expiration = Time_domain_expiration(domain)
+    
+    qty_mx_servers = mx_servers(domain)
+    
     # 將資料添加到data列表中
-    data.append([url] + list(counts_url) + list(counts_domain) + [is_ip, contains_server_client_flag] + list(counts_directory) + list(counts_file) + list(counts_params) + [len(parameters), email_present, response_time, resolved_ips, tls_ssl_certificate, redirects, url_shortened, url_google_index, domain_google_index, domain_spf, tld_present_params, ttl_value, asn_ip, phishing])
+    data.append([url] + list(counts_url) + list(counts_domain) + [is_ip, contains_server_client_flag] + list(counts_directory) + list(counts_file) + list(counts_params) + [len(parameters), email_present, response_time, resolved_ips, tls_ssl_certificate, redirects, url_shortened, url_google_index, domain_google_index, domain_spf, tld_present_params, ttl_value, asn_ip, qty_tld_url, time_domain_activation, time_domain_expiration, qty_mx_servers, phishing])
 
 columns = ["URL", "qty_dot_url", "qty_hyphen_url", "qty_underline_url", "qty_slash_url", "qty_questionmark_url", "qty_equal_url", "qty_at_url", "qty_and_url", "qty_exclamation_url", "qty_space_url", "qty_tilde_url", "qty_comma_url", "qty_plus_url", "qty_asterisk_url", "qty_hashtag_url", "qty_dollar_url", "qty_percent_url", "qty_tld_url", "length_url",
            "qty_dot_domain", "qty_hyphen_domain", "qty_underline_domain", "qty_slash_domain", "qty_questionmark_domain", "qty_equal_domain", "qty_at_domain", "qty_and_domain", "qty_exclamation_domain", "qty_space_domain", "qty_tilde_domain", "qty_comma_domain", "qty_plus_domain", "qty_asterisk_domain", "qty_hashtag_domain", "qty_dollar_domain", "qty_percent_domain", "qty_vowels_domain", "domain_length",
            "domain_in_ip", "server_client_domain", "qty_dot_directory", "qty_hyphen_directory", "qty_underline_directory", "qty_slash_directory", "qty_questionmark_directory", "qty_equal_directory", "qty_at_directory", "qty_and_directory", "qty_exclamation_directory", "qty_space_directory", "qty_tilde_directory", "qty_comma_directory", "qty_plus_directory", "qty_asterisk_directory", "qty_hashtag_directory", "qty_dollar_directory", "qty_percent_directory", "directory_length",
            "qty_dot_file", "qty_hyphen_file", "qty_underline_file", "qty_slash_file", "qty_questionmark_file", "qty_equal_file", "qty_at_file", "qty_and_file", "qty_exclamation_file", "qty_space_file", "qty_tilde_file", "qty_comma_file", "qty_plus_file", "qty_asterisk_file", "qty_hashtag_file", "qty_dollar_file", "qty_percent_file", "file_length",
-           "qty_dot_params", "qty_hyphen_params", "qty_underline_params", "qty_slash_params", "qty_questionmark_params", "qty_equal_params", "qty_at_params", "qty_and_params", "qty_exclamation_params", "qty_space_params", "qty_tilde_params", "qty_comma_params", "qty_plus_params", "qty_asterisk_params", "qty_hashtag_params", "qty_dollar_params", "qty_percent_params", "qty_params", "email_in_url", "response_time", "qty_ip_resolved", "tls_ssl_certificate", "qty_redirects", "url_shortened", "url_google_index", "domain_google_index", "domain_spf", "tld_presencet_params", "ttl_value", "asn_ip", "phishing"]
+           "qty_dot_params", "qty_hyphen_params", "qty_underline_params", "qty_slash_params", "qty_questionmark_params", "qty_equal_params", "qty_at_params", "qty_and_params", "qty_exclamation_params", "qty_space_params", "qty_tilde_params", "qty_comma_params", "qty_plus_params", "qty_asterisk_params", "qty_hashtag_params", "qty_dollar_params", "qty_percent_params", "qty_params", "email_in_url", "response_time", "qty_ip_resolved", "tls_ssl_certificate", "qty_redirects", "url_shortened", "url_google_index", "domain_google_index", "domain_spf", "tld_presencet_params", "ttl_value", "asn_ip", "qty_tld_url", "time_domain_activation", "time_domain_expiration", "qty_mx_servers", "phishing"]
 
 # 將 DataFrame 存為 CSV 檔案
 df = pd.DataFrame(data, columns=columns)
