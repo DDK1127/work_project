@@ -35,7 +35,7 @@ def count_redirects(url):
 def check_tls_ssl_certificate(domain):
     try:
         # 發送 HTTPS 請求，驗證 TLS/SSL 證書
-        response = requests.get("https://" + domain)
+        response = requests.get(domain)
         # 檢查是否成功建立連線
         if response.status_code == 200:
             # 檢查證書相關資訊是否存在
@@ -89,7 +89,7 @@ def is_ip_address(domain):
         return True
     return False
 
-# 定義函數來判斷 domain 中是否包含關鍵字 "server" 或 "client"
+# 定義函數來判斷 domain 中是否包含關鍵字 ka
 def contains_server_client(domain):
     return 1 if "server" in domain or "client" in domain else 0
 
@@ -260,6 +260,19 @@ def mx_servers(domain):
     except:
         return -1
     
+def count_hash_symbols(url):
+    return url.count('#')
+
+def count_underline(domain):
+    return domain.count('_') 
+
+def number_group_to(domain):
+
+    return 
+
+def split_class(domain):
+
+    return 
     
 # 讀取CSV檔案，並省略掉標題行
 df = pd.read_csv("fff.csv", header=None, skiprows=1, names=["URL", "Lable"])
@@ -292,9 +305,6 @@ for index, row in df.iterrows():
     # 調用函數檢查URL是否被Google索引
     url_google_index = is_url_indexed_on_google(url)
     
-    # 調用函數檢查域名是否被Google索引
-    domain_google_index = is_domain_indexed_on_google(domain)
-    
     domain_spf = has_spf_record(domain)
     
     tld_present_params = tld_present_url(domain)
@@ -310,10 +320,18 @@ for index, row in df.iterrows():
     
     qty_mx_servers = mx_servers(domain)
     
-    # 將資料添加到data列表中
-    data.append([url] + [is_ip, contains_server_client_flag] + [email_present, response_time, resolved_ips, tls_ssl_certificate, redirects, url_shortened, url_google_index, domain_google_index, domain_spf, tld_present_params, ttl_value, asn_ip, qty_tld_url, time_domain_activation, time_domain_expiration, qty_mx_servers, phishing])
+    qty_hashtag_url = count_hash_symbols(url)
 
-columns = ["URL", "is_ip", "server_client_domain", "email_in_url", "response_time", "qty_ip_resolved", "tls_ssl_certificate", "qty_redirects", "url_shortened", "url_google_index", "domain_google_index", "domain_spf", "tld_presencet_params", "ttl_value", "asn_ip", "qty_tld_url", "time_domain_activation", "time_domain_expiration", "qty_mx_servers", "phishing"]
+    qty_underline_domain = count_underline(domain)
+    
+    number_group = number_group_to(domain)
+
+    tld_class = split_class(domain)
+
+    # 將資料添加到data列表中
+    data.append([url] + [is_ip, contains_server_client_flag] + [email_present, response_time, resolved_ips, tls_ssl_certificate, redirects, url_shortened, url_google_index, domain_spf, tld_present_params, ttl_value, asn_ip, qty_tld_url, time_domain_activation, time_domain_expiration, qty_mx_servers, qty_hashtag_url, qty_underline_domain, number_group, tld_class, phishing])
+
+columns = ["URL", "is_ip", "server_client_domain", "email_in_url", "response_time", "qty_ip_resolved", "tls_ssl_certificate", "qty_redirects", "url_shortened", "url_google_index", "domain_spf", "tld_presencet_params", "ttl_value", "asn_ip", "qty_tld_url", "time_domain_activation", "time_domain_expiration", "qty_mx_servers", "qty_hashtag_url", "qty_underline_domain", "number_group", "tld_class", "phishing"]
 
 # 將 DataFrame 存為 CSV 檔案
 df = pd.DataFrame(data, columns=columns)
