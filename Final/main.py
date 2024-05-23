@@ -437,7 +437,7 @@ def process_batch(batch_urls):
 
 def main():
     # 讀取CSV檔案，並省略掉標題行
-    df = pd.read_csv("test20.csv", header=None, skiprows=1, names=["URL", "Lable"])
+    df = pd.read_csv("./test.csv", header=None, names=["URL"])
 
     # 提取URL列表
     urls = df["URL"].tolist()
